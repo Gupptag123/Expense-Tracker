@@ -1,0 +1,83 @@
+import csv
+from datetime import datetime
+
+
+def get_expense():
+    while True:
+        date = input("Enter date (YYYY-MM-DD): ")
+
+        try:
+            datetime.strptime(date, "%Y-%m-%d")
+            break
+        except ValueError:
+            print("Invalid date. Please use YYYY-MM-DD.")
+
+    category = input("Enter expense category: ").strip()
+
+    while not category:
+        print("Category cannot be empty.")
+        category = input("Enter expense category: ").strip()
+
+    while True:
+        try:
+            amount = float(input("Enter amount: "))
+
+            if amount <= 0:
+                print("Amount must be greater than zero.")
+            else:
+                break
+        except ValueError:
+            print("Please enter a valid amount.")
+
+    return {
+        "date": date,
+        "category": category,
+        "amount": round(amount, 2)
+    }
+
+
+def calculate_totals(expenses):
+    totals = {}
+
+    for expense in expenses:
+        category = expense["category"]
+        totals[category] = totals.get(category, 0) + expense["amount"]
+
+    return totals
+
+
+def save_to_csv(expenses):
+    with open("expenses.csv", "w", newline="") as file:
+        writer = csv.DictWriter(
+            file, fieldnames=["date", "category", "amount"]
+        )
+        writer.writeheader()
+        writer.writerows(expenses)
+
+    print("\nExpenses saved to expenses.csv")
+
+
+def main():
+    expenses = []
+
+    while True:
+        expenses.append(get_expense())
+
+        choice = input("Add another expense? (yes/no): ").strip().lower()
+        if choice != "yes":
+            break
+
+    save_to_csv(expenses)
+
+    print("\n--- Category-wise Spending ---")
+    totals = calculate_totals(expenses)
+
+    for category, total in totals.items():
+        print(f"{category}: ₹{total:.2f}")
+
+    grand_total = sum(expense["amount"] for expense in expenses)
+    print(f"\nTotal spending: ₹{grand_total:.2f}")
+
+
+if __name__ == "__main__":
+    main()
